@@ -1,0 +1,7 @@
+import turtle as t
+import numpy as np
+import random as r
+
+for i in a0: i
+a0=(t.left(90), t.forward(20), t.left(90), t.forward(10), t.left(90), t.forward(20), t.left(90), t.forward(10), t.left(90))
+a1=(t.penup(),t.left(90), t.forward(10), t.pendown(), t.right(45), t.forward(np.power(10, 0,5)), t.right(135), t.forward(20), t.left(90))
