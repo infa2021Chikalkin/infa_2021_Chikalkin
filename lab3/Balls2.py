@@ -19,8 +19,9 @@ CYAN = (0, 255, 255)
 BLACK = (0, 0, 0)
 COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN]
 
-class Special_Ball:
+class Special_Ball: #класс "особых" шаров, которые изменяют свой радиус
 	def __init__(self, x, y, r0, r, color, dx, dy):
+		'''задаем начальные параметры элемента класса'''
 		self.x = x
 		self.y = y
 		self.r0 = r0
@@ -28,17 +29,20 @@ class Special_Ball:
 		self.color = color
 		self.dx = dx
 		self.dy = dy
-	def move_special_ball(self, screen, w):
+	def move_special_ball(self, screen, w): 
+		'''реализует перемещение особых шаров'''
 		self.x = self.x + self.dx
 		self.y = self.y + self.dy
 		self.r = int(self.r0*np.cos(np.pi/45*w))
 		p.circle(screen, self.color, (self.x, self.y), self.r)
-	def special_ball_collision (self, f, n):
+	def special_ball_collision (self, f, n): 
+		'''реализует столкновения особых шаров между собой'''
 		for i in range(n):
 			if ((self != f[i]) and (self.x-f[i].x)**2 + (self.y-f[i].y)**2 <= (self.r + f[i].r)**2) and ((self.x-self.dx-f[i].x-f[i].dx)**2 + (self.y-self.dy-f[i].y-f[i].dy)**2) > (self.x-f[i].x)**2 + (self.y-f[i].y)**2:
 				self.dx = -self.dx
 				self.dy = -self.dy
-	def special_wall_collision (self):
+	def special_wall_collision (self): 
+		'''реализует столкновения особых шаров со стенами'''
 		if (self.x < self.r) and (self.dx<0) :
 			self.dx = randint(1, 3)
 			self.dy = a[randint(0, len(a)-1)]
@@ -52,8 +56,9 @@ class Special_Ball:
 			self.dy = randint(-3, -1)
 			self.dx = a[randint(0, len(a)-1)]
 
-class Ball:
+class Ball: #класс обычных шаров
 	def __init__(self, x, y, r, color, dx, dy):
+		'''задаем начальные параметры элемента класса'''
 		self.x = x
 		self.y = y
 		self.r = r
@@ -61,11 +66,13 @@ class Ball:
 		self.dx = dx
 		self.dy = dy
 		
-	def move_ball(self, screen):
+	def move_ball(self, screen): 
+		'''реализует перемещение шаров'''
 		self.x = self.x + self.dx
 		self.y = self.y + self.dy
 		p.circle(screen, self.color, (self.x, self.y), self.r)
-	def ball_collision (self, s, f, m, n):
+	def ball_collision (self, s, f, m, n): 
+		'''реализует столкновения шаров между собой'''
 		for i in range(m):
 			if (self != s[i]) and ((self.x-s[i].x)**2 + (self.y-s[i].y)**2 <= (self.r + s[i].r)**2) and ((self.x-self.dx-s[i].x-s[i].dx)**2 + (self.y-self.dy-s[i].y-s[i].dy)**2) > (self.x-s[i].x)**2 + (self.y-s[i].y)**2:
 				self.dx = -self.dx
@@ -75,7 +82,8 @@ class Ball:
 				self.dx = -self.dx
 				self.dy = -self.dy
 				
-	def wall_collision (self):
+	def wall_collision (self): 
+		'''реализует столкновения шаров со стенами'''
 		if (self.x < self.r) and (self.dx<0) :
 			self.dx = randint(1, 3)
 			self.dy = a[randint(0, len(a)-1)]
@@ -89,7 +97,7 @@ class Ball:
 			self.dy = randint(-3, -1)
 			self.dx = a[randint(0, len(a)-1)]
 def click(s, f, event, k, m, n):
-	'''удаляет мячик, в который попал игрок, и добавляет игроку очко''' 
+	'''удаляет мячик, в который попал игрок, и добавляет игроку очки''' 
 	i = 0
 	while i < m:
 		if (((event.pos[0]-s[i].x)**2+(event.pos[1]-s[i].y)**2)<=((s[i].r)**2)):
@@ -160,29 +168,30 @@ while (w <= FPS*30) and (not finished): #основной цикл програ�
 	
 	pygame.display.update()
 	screen.fill(BLACK)
-print('your result - ' , k , 'points')
+	
+print('your result - ' , k , 'points')#блок записи результатов в таблицу рекордов
 p = open("table_of_records.txt", 'r')
 t = p.readlines()
 t[0] = t[0].rstrip()
 h = [0]*6
 names = [0]*6
 for i in range (1, 6):
-    t[i] = t[i].split()
-    h[i - 1] = int(t[i][2])
-    names[i - 1] = t[i][1]
+	t[i] = t[i].split()
+	h[i - 1] = int(t[i][2])
+	names[i - 1] = t[i][1]
 i = 4
 while (k > h[i]) and (i >= 0):
-    h[i + 1] = h[i]
-    h[i] = k
-    names[i + 1] = names[i]
-    names[i] = name
-    i = i-1
+	h[i + 1] = h[i]
+	h[i] = k
+	names[i + 1] = names[i]
+	names[i] = name
+	i = i-1
 for i in range(1, 6):
-    t[i][2] = str(h[i - 1])
-    t[i][1] = names[i - 1]
-    t[i] = ' '.join(t[i])
+	t[i][2] = str(h[i - 1])
+	t[i][1] = names[i - 1]
+	t[i] = ' '.join(t[i])
 t = '\n'.join(t)
-p.close()   
+p.close()	
 q = open("table_of_records.txt", 'w')
 q.write(t)
 q.close()
