@@ -8,6 +8,7 @@ from random import randint
 name = input('Введите свое имя')
 
 pygame.init()
+pygame.font.init()
 
 RED = (255, 0, 0)#блок задания цветовой гаммы мячей
 BLUE = (0, 0, 255)
@@ -74,7 +75,7 @@ class Ball: #класс обычных шаров
         if (self.x > 1000 - self.r) and (self.dx > 0) :
             self.dx = randint(-3, -1)
             self.dy = a[randint(0, len(a)-1)]
-        if (self.y < self.r) and (self.dy < 0) :
+        if (self.y < self.r + 35) and (self.dy < 0) :
             self.dy = randint(1, 3)
             self.dx = a[randint(0, len(a) - 1)]
         if (self.y > 600 - self.r) and (self.dy > 0):
@@ -111,7 +112,7 @@ class Shell (Ball): #класс шара, которым стреляет пуш
         '''
         if (self.x < self.r) and (self.dx < 0) or(self.x > 1000 - self.r) and (self.dx > 0) :
             self.dx = - self.dx // 2
-        if (self.y < self.r) and (self.dy < 0) or (self.y > 600 - self.r) and (self.dy > 0):
+        if (self.y < self.r + 35) and (self.dy < 0) or (self.y > 600 - self.r) and (self.dy > 0):
             self.dy = - self.dy // 2
             
 def update(g, m):
@@ -126,6 +127,25 @@ def update(g, m):
                 m = m - 1
             i = i - 1
         return (g, m)
+        
+def create_label(label, size, a, b, border, fill):
+    '''
+    создает надпись на заданной поверхности
+    label - надпись
+    size - размер шрифта
+    a, b - размеры поверхности
+    border - наличие рамки у пов-сти (логическая переменная)
+    fill - заливка пов-сти (логическая переменная)
+    '''
+    f = pygame.font.SysFont(None, size)
+    text = f.render(label, False, BLACK)
+    surf = pygame.Surface((a, b), pygame.SRCALPHA)
+    if border == True:
+        pygame.draw.rect(surf, BLACK, (0, 0, a, b), 1)
+    if fill == True:
+        pygame.draw.rect(surf, GREEN, (0, 0, a, b), 0)
+    surf.blit(text, (0, 0))
+    return surf    
             
 w = 0 #"счетчик времени"
 k = 0 #число очков у игрока
@@ -139,8 +159,13 @@ a = list(range(-3, -1)) + list(range(1, 3))#задан диапазон знач
 
 pygame.display.update()
 clock = pygame.time.Clock()
-finished = False #логическая переменная, отвечабщая за закрытие программы
+finished = False #логическая переменная, отвечающая за закрытие программы
 press = False #логическая переменная, проверяющая, зажата ли кнопка мыши в данный момент
+
+label = 'Перезарядка орудия'
+recharge = create_label(label, 50, 365, 40, True, False)#создана пов-сть с информацией о факте перезарядки орудия
+
+Restart = create_label('Restart', 40, 100, 30, False, True) #создана пов-сть - кнопка рестарта
  
 while (w <= FPS * 30) and (not finished): #основной цикл программы
     clock.tick(FPS)
@@ -172,8 +197,12 @@ while (w <= FPS * 30) and (not finished): #основной цикл прогр�
             finished = True
             break
         elif event.type == pygame.MOUSEBUTTONDOWN:#нажатие на кнопку мыши
-            press = True
-        elif event.type == pygame.MOUSEBUTTONUP:#отпускание кнопки мыши
+            if (x >= 900) and (500 - y <= 30):
+                k = 0
+                w = 0
+            else:
+                press = True
+        elif (event.type == pygame.MOUSEBUTTONUP) and (press == True):#отпускание кнопки мыши
             press = False
             if m < len(g): #ограничение на число ядер, одновременно находящихся на экране
                 d = [0]*4
@@ -183,24 +212,34 @@ while (w <= FPS * 30) and (not finished): #основной цикл прогр�
                 d[3] = int(- 10 * (l / 50) * sin_alpha)
                 g[m] = Shell(d[0], d[1], 10, 10, BLACK, d[2], d[3], 2) #создание нового ядра
                 m = m + 1
-            else:
-                print ('перезарядка орудия')
             l = 50
-    if (press == True) and (l <= 300):
+            
+    if m >= len(s): #выводим на экран предупреждение - пушка перезаряжается и стрелять не может
+        screen.blit(recharge, (300, 540))
+    
+    screen.blit(Restart, (900, 0)) #рисуем кнопку рестарта
+    Current_result = create_label('Current result - ' + str(k), 40, 400, 30, False, False)
+    #отображаем текущее кол-во очков у игрока на экране
+    screen.blit(Current_result,(200, 0))
+    
+    if (press == True) and (l <= 300): #увеличение длины пушки
         l = l + 2 
     
-    for v in range(m):
+    for v in range(m): #блок реализации перемещения ядер и их столкновений с мячами
         g[v].move_ball(screen, w)
         g, s, k = g[v].critical_collision(g, s, k)
     g, m = update(g, m)
     
-    for i in range (m):
+    for i in range (m): #блок реализации столкновений ядер со стенами
         g[i].critical_wall_collision()
     g, m = update(g, m)
     
     pygame.draw.polygon(screen, BLACK, [[0, 500], [int(- 20 * sin_alpha), int(- 20 * cos_alpha + 500)], \
     [int(l * cos_alpha - 20 * sin_alpha), int(- l * sin_alpha - 20 * cos_alpha + 500)], \
-    [int(l * cos_alpha), int(- l * sin_alpha + 500)]])
+    [int(l * cos_alpha), int(- l * sin_alpha + 500)]]) #рисуем пушку
+    
+    pygame.draw.line(screen, BLACK, (0, 30), (1000, 30), 5) #рисуем верхнюю грань обл. движения шаров
+    
     w = w + 1
     
     pygame.display.update()
@@ -234,11 +273,11 @@ q.write(t)
 q.close()
 
 pygame.display.update()
-pygame.font.init()
 score = 'Your result = ' + str(k)
-f = pygame.font.SysFont(None, 50)
-text = f.render(score, False, BLACK)
-screen.blit(text, (300, 300))
+
+result = create_label(score, 50, 280, 40, False, False)
+screen.blit(result, (320, 300))   
+pygame.display.update()
 
 while not finished:
     clock.tick(FPS)

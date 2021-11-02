@@ -1,6 +1,6 @@
 Таблица рекордов:
 1) Sergey 14 points
-2) Sergey 11 points
-3) sergey 10 points
-4) Sergey 10 points
-5) имя 0 points
+2) Segey 14 points
+3) Sergey 14 points
+4) Sergey 12 points
+5) Sergey 12 points
